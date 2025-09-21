@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Elevator System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px;
+            min-height: 100vh;
+            color: white;
+            overflow-x: auto;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            body {
+                padding: 10px 5px;
+            }
+        }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            flex: 0 0 auto;
+            min-width: 300px;
+        }
+
+        @media (max-width: 768px) {
+            .control-panel {
+                min-width: 100%;
+                padding: 15px;
+            }
+        }
+
+        .number-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .number-pad {
+                gap: 8px;
+            }
+        }
+
+        .floor-btn {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(145deg, #4CAF50, #45a049);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 480px) {
+            .floor-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 14px;
+                border-radius: 10px;
+            }
+        }
+
+        .floor-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .floor-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .floor-btn.basement {
+            background: linear-gradient(145deg, #f44336, #d32f2f);
+        }
+
+        .current-floor {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .current-floor h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .floor-display {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .floor-display:hover {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 215, 0, 0.5);
+        }
+
+        .floor-display:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .suggestion {
+            background: rgba(255, 215, 0, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            text-align: center;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .suggestion {
+                padding: 12px;
+                margin-top: 12px;
+                border-radius: 10px;
+            }
+        }
+
+        .suggestion h4 {
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+
+        .building {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            flex: 1;
+            min-width: 0;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 768px) {
+            .building {
+                min-width: 100%;
+                padding: 15px;
+            }
+        }
+
+        .floor {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px;
+            min-height: 50px;
+            position: relative;
+        }
+
+        @media (max-width: 768px) {
+            .floor {
+                min-height: 45px;
+                padding: 6px;
+                margin-bottom: 4px;
+            }
+        }
+
+        .floor-label {
+            width: 35px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 768px) {
+            .floor-label {
+                width: 30px;
+                font-size: 12px;
+                margin-right: 8px;
+            }
+        }
+
+        .lifts-container {
+            display: flex;
+            gap: 6px;
+            flex: 1;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 768px) {
+            .lifts-container {
+                gap: 4px;
+            }
+        }
+
+        .lift {
+            width: 45px;
+            height: 35px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 11px;
+            transition: all 0.5s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 768px) {
+            .lift {
+                width: 35px;
+                height: 30px;
+                font-size: 10px;
+                border-radius: 5px;
+            }
+        }
+
+        .lift.active {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #000;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        .lift.inactive {
+            background: rgba(100, 100, 100, 0.3);
+            color: #ccc;
+        }
+
+        .lift.suggested {
+            background: linear-gradient(45deg, #00ff00, #32cd32);
+            color: #000;
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.9);
+            border: 2px solid #00ff00;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .lift.serving-user {
+            background: linear-gradient(45deg, #00ff00, #32cd32);
+            color: #000;
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.9);
+            border: 2px solid #00ff00;
+            animation: serving-pulse 2s ease-in-out infinite;
+        }
+
+        .lift.stopped {
+            background: linear-gradient(45deg, #90EE90, #98FB98);
+            color: #000;
+            box-shadow: 0 0 20px rgba(144, 238, 144, 0.8);
+            border: 2px solid #90EE90;
+            animation: stopped-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes serving-pulse {
+            0% { 
+                box-shadow: 0 0 25px rgba(0, 255, 0, 0.9);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 35px rgba(0, 255, 0, 1);
+                transform: scale(1.03);
+            }
+            100% { 
+                box-shadow: 0 0 25px rgba(0, 255, 0, 0.9);
+                transform: scale(1);
+            }
+        }
+
+        @keyframes stopped-glow {
+            0% { box-shadow: 0 0 20px rgba(144, 238, 144, 0.8); transform: scale(1); }
+            50% { box-shadow: 0 0 30px rgba(144, 238, 144, 1); transform: scale(1.02); }
+            100% { box-shadow: 0 0 20px rgba(144, 238, 144, 0.8); transform: scale(1); }
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+            100% { box-shadow: 0 0 30px rgba(255, 215, 0, 1); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 25px rgba(0, 255, 0, 0.9); }
+            50% { transform: scale(1.05); box-shadow: 0 0 35px rgba(0, 255, 0, 1); }
+            100% { transform: scale(1); box-shadow: 0 0 25px rgba(0, 255, 0, 0.9); }
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .title h1 {
+            font-size: 2em;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                margin-bottom: 15px;
+            }
+            
+            .title h1 {
+                font-size: 1.5em;
+                margin-bottom: 5px;
+            }
+            
+            .title p {
+                font-size: 14px;
+            }
+        }
+
+        .status-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .lift-status {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        @media (min-width: 480px) {
+            .lift-status {
+                grid-template-columns: repeat(2, 1fr);
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .status-info {
+                padding: 12px;
+                margin-top: 12px;
+            }
+            
+            .lift-status {
+                font-size: 12px;
+            }
+        }
+
+        .status-info h4 {
+            margin-bottom: 12px;
+            color: #FFD700;
+            font-size: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .status-info h4 {
+                margin-bottom: 10px;
+                font-size: 14px;
+            }
+        }
+
+        .lift-status div {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 6px 8px;
+            border-radius: 6px;
+        }
+
+        @media (max-width: 768px) {
+            .lift-status div {
+                padding: 5px 6px;
+                border-radius: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="title">
+        <h1>🏢 Smart Elevator System</h1>
+        <p>Select your destination floor and find the optimal elevator</p>
+    </div>
+
+    <div class="container">
+        <div class="control-panel">
+            <div class="current-floor">
+                <h3>Your Current Floor</h3>
+                <select class="floor-display" id="currentFloor" onchange="setCurrentFloor(this.value)">
+                    <option value="14">14</option>
+                    <option value="13">13</option>
+                    <option value="12">12</option>
+                    <option value="11">11</option>
+                    <option value="10">10</option>
+                    <option value="9">9</option>
+                    <option value="8">8</option>
+                    <option value="7">7</option>
+                    <option value="6">6</option>
+                    <option value="5">5</option>
+                    <option value="4">4</option>
+                    <option value="3">3</option>
+                    <option value="2">2</option>
+                    <option value="1">1</option>
+                    <option value="G" selected>G</option>
+                    <option value="B1">B1</option>
+                    <option value="B2">B2</option>
+                    <option value="B3">B3</option>
+                </select>
+            </div>
+
+            <div class="number-pad">
+                <button class="floor-btn" onclick="selectFloor('1')">1</button>
+                <button class="floor-btn" onclick="selectFloor('2')">2</button>
+                <button class="floor-btn" onclick="selectFloor('3')">3</button>
+                <button class="floor-btn" onclick="selectFloor('4')">4</button>
+                <button class="floor-btn" onclick="selectFloor('5')">5</button>
+                <button class="floor-btn" onclick="selectFloor('6')">6</button>
+                <button class="floor-btn" onclick="selectFloor('7')">7</button>
+                <button class="floor-btn" onclick="selectFloor('8')">8</button>
+                <button class="floor-btn" onclick="selectFloor('9')">9</button>
+                <button class="floor-btn" onclick="selectFloor('10')">10</button>
+                <button class="floor-btn" onclick="selectFloor('11')">11</button>
+                <button class="floor-btn" onclick="selectFloor('12')">12</button>
+                <button class="floor-btn" onclick="selectFloor('13')">13</button>
+                <button class="floor-btn" onclick="selectFloor('14')">14</button>
+                <button class="floor-btn" onclick="selectFloor('G')">G</button>
+                <button class="floor-btn basement" onclick="selectFloor('B1')">B1</button>
+                <button class="floor-btn basement" onclick="selectFloor('B2')">B2</button>
+                <button class="floor-btn basement" onclick="selectFloor('B3')">B3</button>
+            </div>
+
+            <div class="suggestion" id="suggestion" style="display: none;">
+                <h4>🎯 Recommended Elevator</h4>
+                <p id="suggestionText"></p>
+            </div>
+
+            <div class="status-info">
+                <h4>🚀 Elevator Status</h4>
+                <div class="lift-status" id="liftStatus"></div>
+            </div>
+        </div>
+
+        <div class="building">
+            <div id="floors"></div>
+        </div>
+    </div>
+
+    <script>
+        const floors = ['14', '13', '12', '11', '10', '9', '8', '7', '6', '5', '4', '3', '2', '1', 'G', 'B1', 'B2', 'B3'];
+        const floorIndices = {};
+        floors.forEach((floor, index) => {
+            floorIndices[floor] = index;
+        });
+
+        let lifts = [];
+        let currentFloor = 'G';
+        let suggestedLift = null;
+
+        // Initialize lifts with random positions and directions
+        function initializeLifts() {
+            const liftNames = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+            lifts = liftNames.map(name => ({
+                name: name,
+                currentFloor: Math.floor(Math.random() * floors.length),
+                direction: Math.random() > 0.5 ? 1 : -1, // 1 for up, -1 for down
+                speed: 0.5 + Math.random() * 1.5, // Random speed between 0.5 and 2
+                nextMove: Date.now() + Math.random() * 3000,
+                targetFloor: null, // Floor the lift is going to
+                finalDestination: null, // Final destination after picking up user
+                stopUntil: null, // Time when lift should resume moving
+                isUserRequested: false // Whether this is serving a user request
+            }));
+        }
+
+        function createFloorHTML() {
+            const floorsContainer = document.getElementById('floors');
+            floorsContainer.innerHTML = '';
+
+            floors.forEach(floorName => {
+                const floorDiv = document.createElement('div');
+                floorDiv.className = 'floor';
+                floorDiv.innerHTML = `
+                    <div class="floor-label">${floorName}</div>
+                    <div class="lifts-container">
+                        ${lifts.map(lift => 
+                            `<div class="lift inactive" id="lift-${lift.name}-${floorName}">${lift.name}</div>`
+                        ).join('')}
+                    </div>
+                `;
+                floorsContainer.appendChild(floorDiv);
+            });
+        }
+
+        function updateLiftPositions() {
+            // Clear all lift positions
+            document.querySelectorAll('.lift').forEach(lift => {
+                lift.classList.remove('active', 'suggested', 'stopped', 'serving-user');
+                lift.classList.add('inactive');
+            });
+
+            // Update lift positions
+            lifts.forEach(lift => {
+                const floorName = floors[lift.currentFloor];
+                const liftElement = document.getElementById(`lift-${lift.name}-${floorName}`);
+                if (liftElement) {
+                    liftElement.classList.remove('inactive');
+                    
+                    // Always show green while serving user (including when stopped)
+                    if (lift.isUserRequested) {
+                        liftElement.classList.add('serving-user');
+                    } else if (lift.stopUntil && Date.now() < lift.stopUntil) {
+                        liftElement.classList.add('stopped');
+                    } else {
+                        liftElement.classList.add('active');
+                    }
+                    
+                    if (suggestedLift && suggestedLift.name === lift.name && floorName === currentFloor && !lift.isUserRequested) {
+                        liftElement.classList.add('suggested');
+                    }
+                }
+            });
+
+            updateLiftStatus();
+        }
+
+        function updateLiftStatus() {
+            const statusContainer = document.getElementById('liftStatus');
+            statusContainer.innerHTML = lifts.map(lift => {
+                const floorName = floors[lift.currentFloor];
+                let status = '';
+                
+                if (lift.stopUntil && Date.now() < lift.stopUntil) {
+                    status = '🚪 Stopped';
+                } else {
+                    const direction = lift.direction > 0 ? '↑' : '↓';
+                    status = direction;
+                }
+                
+                if (lift.targetFloor !== null) {
+                    const targetFloorName = floors[lift.targetFloor];
+                    if (lift.finalDestination !== null) {
+                        const finalFloorName = floors[lift.finalDestination];
+                        return `<div>Lift ${lift.name}: Floor ${floorName} ${status} → ${targetFloorName} → ${finalFloorName}</div>`;
+                    } else {
+                        return `<div>Lift ${lift.name}: Floor ${floorName} ${status} → ${targetFloorName}</div>`;
+                    }
+                } else {
+                    return `<div>Lift ${lift.name}: Floor ${floorName} ${status}</div>`;
+                }
+            }).join('');
+        }
+
+        function moveLift(lift) {
+            const now = Date.now();
+            
+            // Check if lift is stopped
+            if (lift.stopUntil && now < lift.stopUntil) {
+                return; // Don't move while stopped
+            }
+            
+            // Resume movement after stop
+            if (lift.stopUntil && now >= lift.stopUntil) {
+                lift.stopUntil = null;
+                
+                // If we have a final destination after pickup, set it as new target
+                if (lift.finalDestination !== null) {
+                    lift.targetFloor = lift.finalDestination;
+                    
+                    // Set direction towards final destination
+                    if (lift.finalDestination > lift.currentFloor) {
+                        lift.direction = 1;
+                    } else if (lift.finalDestination < lift.currentFloor) {
+                        lift.direction = -1;
+                    }
+                    
+                    lift.finalDestination = null;
+                } else {
+                    // Journey complete - no more destinations, resume normal operation
+                    lift.targetFloor = null;
+                    lift.isUserRequested = false;
+                    
+                    // Clear suggestion when journey is complete
+                    if (suggestedLift && suggestedLift.name === lift.name) {
+                        suggestedLift = null;
+                        document.getElementById('suggestion').style.display = 'none';
+                    }
+                }
+            }
+            
+            if (now < lift.nextMove) return;
+
+            // Move lift
+            lift.currentFloor += lift.direction;
+
+            // Check if we've reached the target floor
+            if (lift.targetFloor !== null && lift.currentFloor === lift.targetFloor) {
+                // Stop at target floor for 5 seconds
+                lift.stopUntil = now + 5000;
+                lift.nextMove = now + 5000;
+                return;
+            }
+
+            // Bounce at boundaries
+            if (lift.currentFloor >= floors.length - 1) {
+                lift.currentFloor = floors.length - 1;
+                lift.direction = -1;
+            } else if (lift.currentFloor <= 0) {
+                lift.currentFloor = 0;
+                lift.direction = 1;
+            }
+
+            // Occasionally change direction randomly (only if not serving a user request)
+            if (!lift.targetFloor && Math.random() < 0.1) {
+                lift.direction *= -1;
+            }
+
+            // Set next move time
+            lift.nextMove = now + (2000 / lift.speed);
+        }
+
+        function findOptimalLift(targetFloor) {
+            const targetIndex = floorIndices[targetFloor];
+            const currentIndex = floorIndices[currentFloor];
+            
+            let bestLift = null;
+            let bestScore = Infinity;
+
+            lifts.forEach(lift => {
+                const liftFloorIndex = lift.currentFloor;
+                const distance = Math.abs(liftFloorIndex - currentIndex);
+                
+                // Factor in direction - prefer lifts moving towards us
+                let directionBonus = 0;
+                if (lift.direction > 0 && currentIndex > liftFloorIndex) directionBonus = -2;
+                if (lift.direction < 0 && currentIndex < liftFloorIndex) directionBonus = -2;
+                
+                const score = distance + directionBonus;
+                
+                if (score < bestScore) {
+                    bestScore = score;
+                    bestLift = lift;
+                }
+            });
+
+            return bestLift;
+        }
+
+        function selectFloor(floor) {
+            if (floor === currentFloor) {
+                document.getElementById('suggestion').style.display = 'none';
+                suggestedLift = null;
+                updateLiftPositions();
+                return;
+            }
+
+            const optimalLift = findOptimalLift(floor);
+            suggestedLift = optimalLift;
+            
+            // Set the target floors for the optimal lift (first to current floor, then to destination)
+            const currentFloorIndex = floorIndices[currentFloor];
+            const targetIndex = floorIndices[floor];
+            
+            optimalLift.targetFloor = currentFloorIndex; // First go to user's current floor
+            optimalLift.finalDestination = targetIndex; // Then go to destination
+            optimalLift.isUserRequested = true;
+            
+            // Set direction towards current floor first
+            const liftCurrentIndex = optimalLift.currentFloor;
+            if (currentFloorIndex > liftCurrentIndex) {
+                optimalLift.direction = 1; // Go up to reach user
+            } else if (currentFloorIndex < liftCurrentIndex) {
+                optimalLift.direction = -1; // Go down to reach user
+            }
+            
+            const currentFloorName = floors[optimalLift.currentFloor];
+            const distance = Math.abs(optimalLift.currentFloor - currentFloorIndex);
+            const estimatedTime = Math.ceil(distance * 2); // Rough estimate
+            
+            document.getElementById('suggestionText').innerHTML = `
+                <strong>Take Elevator ${optimalLift.name}</strong><br>
+                Currently at Floor: ${currentFloorName}<br>
+                Coming to your floor: ${currentFloor}<br>
+                Then going to Floor: ${floor}<br>
+                Estimated arrival: ${estimatedTime} seconds<br>
+                Direction: ${optimalLift.direction > 0 ? 'Moving Up ↑' : 'Moving Down ↓'}
+            `;
+            document.getElementById('suggestion').style.display = 'block';
+            
+            updateLiftPositions();
+        }
+
+        function setCurrentFloor(floor) {
+            currentFloor = floor;
+            // Clear any existing suggestions when floor changes
+            document.getElementById('suggestion').style.display = 'none';
+            suggestedLift = null;
+            updateLiftPositions();
+        }
+
+        // Animation loop
+        function animate() {
+            lifts.forEach(moveLift);
+            updateLiftPositions();
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize the system
+        initializeLifts();
+        createFloorHTML();
+        updateLiftPositions();
+        animate();
+
+        // Allow clicking on floor labels to set current floor (alternative method)
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('floor-label')) {
+                const floor = e.target.textContent;
+                document.getElementById('currentFloor').value = floor;
+                setCurrentFloor(floor);
+            }
+        });
+    </script>
+</body>
+</html>
